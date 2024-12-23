@@ -27,7 +27,7 @@ RUN git clone -b v2 --depth 1 --single-branch https://github.com/capnproto/capnp
     cd ../.. && \
     rm -rf capnproto
 WORKDIR /app
-RUN git clone --depth 1 --single-branch https://github.com/kentonv/kvmonitor.git && \
+RUN git clone --depth 1 --single-branch https://github.com/goncalossilva/kvmonitor.git && \
     cd kvmonitor && \
     make && \
     cp server .. && \
