@@ -1,7 +1,8 @@
 # Compile capnproto (v2) + kvmonitor and prepare dependencies for running.
-FROM debian:12-slim AS builder
+FROM ubuntu:24.04 AS builder
 
-ARG CAPNPROTO_REF=b55af93a71011ab7323401be8de8dd6bb0fcb38d
+ARG CAPNPROTO_REF=v2
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
@@ -10,6 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     automake \
     libtool \
     make \
+    build-essential \
     clang \
     libavcodec-dev \
     libavformat-dev \
@@ -27,7 +29,7 @@ RUN git init && \
     git checkout FETCH_HEAD && \
     cd c++ && \
     autoreconf -i && \
-    CC=clang CXX=clang++ ./configure --prefix=/usr && \
+    CC=clang CXX=clang++ CPPFLAGS="-include stdint.h" ./configure --prefix=/usr && \
     make -j"$(nproc)" && \
     make install && \
     cd / && \
@@ -44,7 +46,7 @@ RUN mkdir -p /deps && \
     cp -v $(ldconfig -p | grep "ld-linux.*\.so" | head -n1 | tr ' ' '\n' | grep /) /deps/
 
 # Run kvmonitor
-FROM debian:12-slim
+FROM ubuntu:24.04
 COPY --from=builder /deps/* /lib/
 COPY --from=builder /app/server /app/server
 WORKDIR /app
