@@ -23,10 +23,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean
 
 WORKDIR /tmp/capnproto
-RUN git init && \
-    git remote add origin https://github.com/capnproto/capnproto.git && \
-    git fetch --depth 1 origin "$CAPNPROTO_REF" && \
-    git checkout FETCH_HEAD && \
+RUN git clone --depth 1 --single-branch --branch "$CAPNPROTO_REF" \
+      https://github.com/capnproto/capnproto.git . && \
     cd c++ && \
     autoreconf -i && \
     CC=clang CXX=clang++ CPPFLAGS="-include stdint.h" ./configure --prefix=/usr && \
