@@ -1,5 +1,8 @@
-# Compile capnproto and kvmonitor and prepare dependencies for running
+# Compile capnproto (v2) + kvmonitor and prepare dependencies for running.
 FROM debian:12-slim AS builder
+
+ARG CAPNPROTO_REF=b55af93a71011ab7323401be8de8dd6bb0fcb38d
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     git \
@@ -7,25 +10,28 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     automake \
     libtool \
     make \
-    clang-16 \
-    clang++-16 \
+    clang \
     libavcodec-dev \
     libavformat-dev \
+    libswresample-dev \
     libswscale-dev \
+    libavutil-dev \
     zlib1g-dev \
-    && update-alternatives --install /usr/bin/clang clang /usr/bin/clang-16 100 \
-    && update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-16 100 \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
+
 WORKDIR /tmp/capnproto
-RUN git clone -b v2 --depth 1 --single-branch https://github.com/capnproto/capnproto.git && \
-    cd capnproto/c++ && \
+RUN git init && \
+    git remote add origin https://github.com/capnproto/capnproto.git && \
+    git fetch --depth 1 origin "$CAPNPROTO_REF" && \
+    git checkout FETCH_HEAD && \
+    cd c++ && \
     autoreconf -i && \
-    ./configure && \
-    make -j$(nproc) && \
+    CC=clang CXX=clang++ ./configure --prefix=/usr && \
+    make -j"$(nproc)" && \
     make install && \
-    cd ../.. && \
-    rm -rf capnproto
+    cd / && \
+    rm -rf /tmp/capnproto
 WORKDIR /app
 RUN git clone --depth 1 --single-branch https://github.com/goncalossilva/kvmonitor.git && \
     cd kvmonitor && \
