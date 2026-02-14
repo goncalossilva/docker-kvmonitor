@@ -27,6 +27,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Get kvmonitor latest commit
+        id: kvmonitor
+        run: |
+          sha="$(git ls-remote --exit-code https://github.com/goncalossilva/kvmonitor.git refs/heads/main | cut -f1)"
+          if [ -z "$sha" ]; then
+            echo "Error: Failed to retrieve kvmonitor latest commit SHA." >&2
+            exit 1
+          fi
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
@@ -34,5 +44,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ghcr.io/goncalossilva/kvmonitor:latest
+          build-args: |
+            KVMONITOR_SHA=${{ steps.kvmonitor.outputs.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

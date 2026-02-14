@@ -32,8 +32,13 @@ RUN git clone --depth 1 --single-branch --branch "$CAPNPROTO_REF" \
     make install && \
     cd / && \
     rm -rf /tmp/capnproto
+
+# Used for cache-busting so `RUN git clone …kvmonitor…` doesn't get stuck on an old commit when
+# buildx caching is enabled (Docker cache keys don't include remote git repo state).
+ARG KVMONITOR_SHA=unknown
 WORKDIR /app
-RUN git clone --depth 1 --single-branch https://github.com/goncalossilva/kvmonitor.git && \
+RUN echo "kvmonitor: ${KVMONITOR_SHA}" && \
+    git clone --depth 1 --single-branch https://github.com/goncalossilva/kvmonitor.git && \
     cd kvmonitor && \
     make && \
     cp server .. && \
