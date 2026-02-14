@@ -30,7 +30,11 @@ jobs:
       - name: Get kvmonitor latest commit
         id: kvmonitor
         run: |
-          sha="$(git ls-remote https://github.com/goncalossilva/kvmonitor.git refs/heads/main | cut -f1)"
+          sha="$(git ls-remote --exit-code https://github.com/goncalossilva/kvmonitor.git refs/heads/main | cut -f1)"
+          if [ -z "$sha" ]; then
+            echo "Error: Failed to retrieve kvmonitor latest commit SHA." >&2
+            exit 1
+          fi
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
 
       - name: Build and push
